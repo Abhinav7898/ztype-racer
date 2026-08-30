@@ -1,9 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useImperativeHandle,
-  forwardRef,
-} from "react";
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { getWaveConfig, DICTIONARIES } from "../game/config";
 import type { CategoryKey, DifficultyKey, GameModeKey } from "../types/game";
 import { Enemy } from "../game/Enemy";
@@ -50,7 +45,6 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
     {
       score,
       setScore,
-      lives,
       setLives,
       wave,
       setWave,
@@ -58,7 +52,6 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       setIsGameOver,
       isPaused,
       isGameStarted,
-      isMobileView,
       bombs,
       setBombs,
       multiplier,
@@ -71,7 +64,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       mode,
       onMistakeKey,
     },
-    ref,
+    ref
   ) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -82,12 +75,10 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
     const targetEnemyRef = useRef<Enemy | null>(null);
 
     const spawnedCountRef = useRef<number>(0);
-    const destroyedCountRef = useRef<number>(0);
     const lastSpawnTimeRef = useRef<number>(0);
     const waveTransitioningRef = useRef<boolean>(false);
     const waveStartScoreRef = useRef<number>(score);
 
-    // 1. WAVE INTRO BANNER (3 seconds / 180 frames)
     const waveIntroBannerRef = useRef<{
       active: boolean;
       timer: number;
@@ -98,7 +89,6 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       alpha: 1.0,
     });
 
-    // 2. MOTHERSHIP INVASION ALERT BANNER (Occurs after Wave Intro)
     const bossAlertBannerRef = useRef<{
       active: boolean;
       timer: number;
@@ -111,7 +101,6 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       triggeredAudio: false,
     });
 
-    // 3. WAVE CLEAR BANNER (3 seconds / 180 frames)
     const clearBannerRef = useRef<{
       active: boolean;
       alpha: number;
@@ -147,38 +136,26 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
 
     const shakeIntensityRef = useRef<number>(0);
     const triggerShake = (intensity: number) => {
-      shakeIntensityRef.current = Math.max(
-        shakeIntensityRef.current,
-        intensity,
-      );
+      shakeIntensityRef.current = Math.max(shakeIntensityRef.current, intensity);
     };
 
-    const empWaveRef = useRef<{
-      active: boolean;
-      radius: number;
-      maxRadius: number;
-      alpha: number;
-    }>({
+    const empWaveRef = useRef<{ active: boolean; radius: number; maxRadius: number; alpha: number }>({
       active: false,
       radius: 0,
       maxRadius: 0,
       alpha: 0,
     });
 
-    const starsRef = useRef<
-      { x: number; y: number; size: number; speed: number }[]
-    >([]);
+    const starsRef = useRef<{ x: number; y: number; size: number; speed: number }[]>([]);
 
     useEffect(() => {
       spawnedCountRef.current = 0;
-      destroyedCountRef.current = 0;
       lastSpawnTimeRef.current = performance.now() + 1000;
       waveTransitioningRef.current = false;
       bossEnemyRef.current = null;
       bossSwarmLaunchedRef.current = false;
       waveStartScoreRef.current = score;
 
-      // Start 3-second Wave Intro
       waveIntroBannerRef.current = {
         active: true,
         timer: 180,
@@ -223,13 +200,11 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
         if (target.getNextChar() === key) {
           matched = true;
           target.matchChar(key);
-          const isFinal = target.typedIndex >= target.word.length;
+          const isFinal = target.typedIndex >= target.word.length && target.queuedWords.length === 0;
 
           sounds.playLaser(isFinal);
           triggerShake(1.8);
-          bulletsRef.current.push(
-            new Bullet(playerX, playerY, target, isFinal),
-          );
+          bulletsRef.current.push(new Bullet(playerX, playerY, target, isFinal));
 
           if (isFinal) {
             targetEnemyRef.current = null;
@@ -237,10 +212,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
         }
       } else {
         const candidates = enemiesRef.current
-          .filter(
-            (enemy) =>
-              !enemy.isPendingDestruction && enemy.getNextChar() === key,
-          )
+          .filter((enemy) => !enemy.isPendingDestruction && enemy.getNextChar() === key)
           .sort((a, b) => b.y - a.y);
 
         if (candidates.length > 0) {
@@ -251,13 +223,11 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
 
           sounds.playLock();
           selected.matchChar(key);
-          const isFinal = selected.typedIndex >= selected.word.length;
+          const isFinal = selected.typedIndex >= selected.word.length && selected.queuedWords.length === 0;
 
           sounds.playLaser(isFinal);
           triggerShake(1.8);
-          bulletsRef.current.push(
-            new Bullet(playerX, playerY, selected, isFinal),
-          );
+          bulletsRef.current.push(new Bullet(playerX, playerY, selected, isFinal));
 
           if (isFinal) {
             targetEnemyRef.current = null;
@@ -281,18 +251,13 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       }
 
       const calcAccuracy = Math.round(
-        (correctKeystrokesRef.current / totalKeystrokesRef.current) * 100,
+        (correctKeystrokesRef.current / totalKeystrokesRef.current) * 100
       );
       currentAccuracyRef.current = calcAccuracy;
       setAccuracy(calcAccuracy);
 
-      const minutes = Math.max(
-        0.1,
-        (Date.now() - startTimeRef.current) / 60000,
-      );
-      const calculatedWpm = Math.round(
-        correctKeystrokesRef.current / 5 / minutes,
-      );
+      const minutes = Math.max(0.1, (Date.now() - startTimeRef.current) / 60000);
+      const calculatedWpm = Math.round(correctKeystrokesRef.current / 5 / minutes);
       currentWpmRef.current = calculatedWpm;
       setWpm(calculatedWpm);
     };
@@ -320,15 +285,9 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           if (enemy.type !== "boss") {
             explosionsRef.current.push(new Explosion(enemy.x, enemy.y));
             floatingTextsRef.current.push(
-              new FloatingText(
-                enemy.x,
-                enemy.y,
-                `+${100 * multiplier}`,
-                "#00ffff",
-              ),
+              new FloatingText(enemy.x, enemy.y, `+${100 * multiplier}`, "#00ffff")
             );
             setScore((prev) => prev + 100 * multiplier);
-            destroyedCountRef.current++;
             enemiesRef.current.splice(i, 1);
           }
         }
@@ -377,30 +336,18 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
       };
 
       const spawnEnemy = () => {
-        const isMobile = canvas.width < 500;
-        const margin = isMobile ? 35 : 75;
+        const margin = canvas.width < 500 ? 35 : 75;
         const usableWidth = canvas.width - margin * 2;
         const randomX = margin + Math.random() * usableWidth;
 
         const pool = wave >= 4 ? [...dict.short, ...dict.medium] : dict.short;
-
-        // Multi-Phase Elite Enemy Spawn Probability based on wave & difficulty
-        const diffChance =
-          difficulty === "hard" ? 0.45 : difficulty === "normal" ? 0.3 : 0.15;
+        const diffChance = difficulty === "hard" ? 0.45 : difficulty === "normal" ? 0.3 : 0.15;
         const isElite = wave >= 2 && Math.random() < diffChance;
 
         if (isElite) {
           const word1 = getUniqueWord(dict.short);
           const word2 = getUniqueWord(dict.short);
-          // Creates a 2-phase enemy that changes color when word1 is typed
-          const enemy = new Enemy(
-            [word1, word2],
-            randomX,
-            55,
-            config.baseSpeed * 0.9,
-            wave,
-            "elite",
-          );
+          const enemy = new Enemy([word1, word2], randomX, 55, config.baseSpeed * 0.9, wave, "elite");
           enemiesRef.current.push(enemy);
         } else {
           const word = getUniqueWord(pool);
@@ -415,10 +362,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
         const phrases = dict.bossPhrases;
         let nextIndex = Math.floor(Math.random() * phrases.length);
 
-        if (
-          phrases.length > 1 &&
-          nextIndex === lastBossSentenceIndexRef.current
-        ) {
+        if (phrases.length > 1 && nextIndex === lastBossSentenceIndexRef.current) {
           nextIndex = (nextIndex + 1) % phrases.length;
         }
         lastBossSentenceIndexRef.current = nextIndex;
@@ -430,7 +374,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           50,
           config.baseSpeed,
           wave,
-          "boss",
+          "boss"
         );
         enemiesRef.current.push(boss);
         bossEnemyRef.current = boss;
@@ -439,10 +383,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
 
       const launchBossDroneSwarm = (boss: Enemy) => {
         const isMobile = canvas.width < 500;
-        const baseCount =
-          mode === "boss_rush"
-            ? 4 + Math.floor(wave * 1.2)
-            : 3 + Math.floor(wave / 3) * 2;
+        const baseCount = mode === "boss_rush" ? 4 + Math.floor(wave * 1.2) : 3 + Math.floor(wave / 3) * 2;
         const droneCount = Math.min(baseCount, isMobile ? 5 : 10);
 
         const diffMul = {
@@ -451,10 +392,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           hard: 1.35,
         }[difficulty];
 
-        const speedFactor =
-          mode === "boss_rush"
-            ? 0.22 + Math.min(wave * 0.03, 0.45)
-            : 0.22 + Math.min((wave / 3) * 0.045, 0.4);
+        const speedFactor = mode === "boss_rush" ? 0.22 + Math.min(wave * 0.03, 0.45) : 0.22 + Math.min((wave / 3) * 0.045, 0.4);
         const droneSpeed = speedFactor * diffMul;
         const playerX = canvas.width / 2;
         const playerY = canvas.height - 35;
@@ -468,17 +406,15 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
 
         for (let i = 0; i < droneCount; i++) {
           const spawnX = startX + i * spacing;
-          const arcY =
-            boss.y + 35 + Math.sin((i / (droneCount - 1 || 1)) * Math.PI) * 18;
+          const arcY = boss.y + 35 + Math.sin((i / (droneCount - 1 || 1)) * Math.PI) * 18;
           const targetFanX = playerX + (i - (droneCount - 1) / 2) * 45;
 
           let chosenWord = shuffledShort.find(
-            (w) => !usedSwarmWords.has(w.toUpperCase()),
+            (w) => !usedSwarmWords.has(w.toUpperCase())
           );
 
           if (!chosenWord) {
-            chosenWord =
-              dict.short[Math.floor(Math.random() * dict.short.length)];
+            chosenWord = dict.short[Math.floor(Math.random() * dict.short.length)];
           }
           usedSwarmWords.add(chosenWord.toUpperCase());
 
@@ -491,7 +427,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
             "drone_bullet",
             "none",
             targetFanX,
-            playerY,
+            playerY
           );
 
           enemiesRef.current.push(drone);
@@ -500,11 +436,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
         boss.droneSwarmCount = droneCount;
       };
 
-      const drawPlayer = (
-        context: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-      ) => {
+      const drawPlayer = (context: CanvasRenderingContext2D, x: number, y: number) => {
         const isMobile = context.canvas.width < 500;
         const scale = isMobile ? 0.8 : 1.0;
 
@@ -575,7 +507,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
         ctx.fillStyle = "#04060f";
         ctx.fillRect(-40, -40, canvas.width + 80, canvas.height + 80);
 
-        // Subtle Matrix Grid
+        // Grid
         ctx.save();
         ctx.strokeStyle = "rgba(0, 240, 255, 0.035)";
         ctx.lineWidth = 1;
@@ -640,7 +572,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        // STEP 1: WAVE INTRO BANNER (Solid for 3.0s / 180 frames)
+        // 1. Wave Intro Banner
         if (waveIntroBannerRef.current.active) {
           const intro = waveIntroBannerRef.current;
           if (!isPaused) {
@@ -655,27 +587,19 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           if (intro.alpha > 0) {
             ctx.save();
             ctx.globalAlpha = Math.max(0, Math.min(1, intro.alpha));
-            ctx.font =
-              canvas.width < 500
-                ? "900 24px 'Courier New', monospace"
-                : "900 32px 'Courier New', monospace";
+            ctx.font = canvas.width < 500 ? "900 24px 'Courier New', monospace" : "900 32px 'Courier New', monospace";
             ctx.textAlign = "center";
             ctx.fillStyle = "#00e1ff";
             ctx.shadowBlur = 16;
             ctx.shadowColor = "#00e1ff";
-            ctx.fillText(
-              `WAVE ${wave}`,
-              canvas.width / 2,
-              canvas.height / 2 - 20,
-            );
+            ctx.fillText(`WAVE ${wave}`, canvas.width / 2, canvas.height / 2 - 20);
             ctx.restore();
           } else {
             intro.active = false;
-            // When Wave Intro finishes, trigger Boss Alert if it's a boss wave
             if (config.isBossWave) {
               bossAlertBannerRef.current = {
                 active: true,
-                timer: 180, // 3 seconds
+                timer: 180,
                 alpha: 1.0,
                 triggeredAudio: false,
               };
@@ -683,7 +607,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        // STEP 2: MOTHERSHIP INVASION ALERT (Appears after Wave Intro vanishes)
+        // 2. Boss Alert Banner
         if (bossAlertBannerRef.current.active) {
           const bossAlert = bossAlertBannerRef.current;
           if (!bossAlert.triggeredAudio) {
@@ -704,20 +628,15 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           if (bossAlert.alpha > 0) {
             ctx.save();
             ctx.globalAlpha = Math.max(0, Math.min(1, bossAlert.alpha));
-            ctx.font =
-              canvas.width < 500
-                ? "900 20px 'Courier New', monospace"
-                : "900 28px 'Courier New', monospace";
+            ctx.font = canvas.width < 500 ? "900 20px 'Courier New', monospace" : "900 28px 'Courier New', monospace";
             ctx.textAlign = "center";
             ctx.fillStyle = "#ec4899";
             ctx.shadowBlur = 20;
             ctx.shadowColor = "#ec4899";
             ctx.fillText(
-              mode === "boss_rush"
-                ? `🔥 MOTHERSHIP RUSH ${wave} 🔥`
-                : `⚠️ MOTHERSHIP DETECTED ⚠️`,
+              mode === "boss_rush" ? `🔥 MOTHERSHIP RUSH ${wave} 🔥` : `⚠️ MOTHERSHIP DETECTED ⚠️`,
               canvas.width / 2,
-              canvas.height / 2 - 20,
+              canvas.height / 2 - 20
             );
             ctx.restore();
           } else {
@@ -725,7 +644,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        // STEP 3: WAVE CLEAR FLOATING BANNER (3 seconds / 180 frames)
+        // 3. Wave Clear Banner
         if (clearBannerRef.current.active) {
           const b = clearBannerRef.current;
           if (!isPaused) {
@@ -744,41 +663,28 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
             const midX = canvas.width / 2;
             const midY = canvas.height / 2 - 20;
 
-            ctx.font =
-              canvas.width < 500
-                ? "900 20px 'Courier New', monospace"
-                : "900 30px 'Courier New', monospace";
+            ctx.font = canvas.width < 500 ? "900 20px 'Courier New', monospace" : "900 30px 'Courier New', monospace";
             ctx.textAlign = "center";
             ctx.fillStyle = b.isBoss ? "#ff0055" : "#00f0ff";
             ctx.shadowBlur = 20;
             ctx.shadowColor = b.isBoss ? "#ff0055" : "#00f0ff";
             ctx.fillText(
-              b.isBoss
-                ? `MOTHERSHIP ${b.waveNum} DESTROYED!`
-                : `WAVE ${b.waveNum} CLEARED!`,
+              b.isBoss ? `MOTHERSHIP ${b.waveNum} DESTROYED!` : `WAVE ${b.waveNum} CLEARED!`,
               midX,
-              midY - 20,
+              midY - 20
             );
 
             ctx.font = "bold 14px 'Courier New', monospace";
             ctx.fillStyle = "#ffe600";
             ctx.shadowBlur = 10;
             ctx.shadowColor = "#ffe600";
-            ctx.fillText(
-              `+${b.gainedScore} PTS  |  TOTAL: ${score}`,
-              midX,
-              midY + 10,
-            );
+            ctx.fillText(`+${b.gainedScore} PTS  |  TOTAL: ${score}`, midX, midY + 10);
 
             ctx.font = "bold 11px 'Courier New', monospace";
             ctx.fillStyle = "#94a3b8";
             ctx.shadowBlur = 4;
             ctx.shadowColor = "#94a3b8";
-            ctx.fillText(
-              `ACC: ${b.acc}%  •  SPEED: ${b.wpm} WPM`,
-              midX,
-              midY + 32,
-            );
+            ctx.fillText(`ACC: ${b.acc}%  •  SPEED: ${b.wpm} WPM`, midX, midY + 32);
 
             ctx.restore();
           } else {
@@ -786,11 +692,8 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        // SPAWNING: Only starts after announcements finish
         const canSpawnStandard = !waveIntroBannerRef.current.active;
-        const canSpawnBoss =
-          !waveIntroBannerRef.current.active &&
-          !bossAlertBannerRef.current.active;
+        const canSpawnBoss = !waveIntroBannerRef.current.active && !bossAlertBannerRef.current.active;
 
         if (isGameStarted && !isGameOver && !isPaused) {
           if (config.isBossWave && canSpawnBoss) {
@@ -817,14 +720,8 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        if (
-          bossEnemyRef.current &&
-          bossEnemyRef.current.isShielded &&
-          bossSwarmLaunchedRef.current
-        ) {
-          const activeDrones = enemiesRef.current.filter(
-            (e) => e.type === "drone_bullet",
-          );
+        if (bossEnemyRef.current && bossEnemyRef.current.isShielded && bossSwarmLaunchedRef.current) {
+          const activeDrones = enemiesRef.current.filter((e) => e.type === "drone_bullet");
           if (activeDrones.length === 0) {
             bossEnemyRef.current.isShielded = false;
             sounds.playPowerUp();
@@ -834,21 +731,16 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
                 bossEnemyRef.current.x,
                 bossEnemyRef.current.y - 20,
                 "MOTHERSHIP SHIELD DOWN!",
-                "#ff0055",
-              ),
+                "#ff0055"
+              )
             );
           }
         }
 
-        // Update & Render Enemies
         for (let i = enemiesRef.current.length - 1; i >= 0; i--) {
           const enemy = enemiesRef.current[i];
           if (!isGameOver && !isPaused && isGameStarted) {
-            enemy.update(
-              canvas.width,
-              enemiesRef.current,
-              freezeTimerRef.current > 0,
-            );
+            enemy.update(canvas.width, freezeTimerRef.current > 0);
           }
           enemy.draw(ctx);
 
@@ -864,12 +756,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
               sounds.playDamage();
               triggerShake(12);
               floatingTextsRef.current.push(
-                new FloatingText(
-                  playerX,
-                  playerY - 30,
-                  "SHIELD BROKEN",
-                  "#a855f7",
-                ),
+                new FloatingText(playerX, playerY - 30, "SHIELD BROKEN", "#a855f7")
               );
             } else {
               triggerShake(20);
@@ -885,12 +772,9 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
                 return Math.max(0, next);
               });
             }
-
-            destroyedCountRef.current++;
           }
         }
 
-        // Update Bullets
         for (let i = bulletsRef.current.length - 1; i >= 0; i--) {
           const bullet = bulletsRef.current[i];
           if (!isPaused && isGameStarted) bullet.update();
@@ -898,9 +782,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
 
           if (!isPaused && isGameStarted && bullet.finished) {
             if (bullet.isFinalBullet) {
-              explosionsRef.current.push(
-                new Explosion(bullet.target.x, bullet.target.y),
-              );
+              explosionsRef.current.push(new Explosion(bullet.target.x, bullet.target.y));
               sounds.playExplosion();
               triggerShake(bullet.target.type === "boss" ? 22 : 10);
 
@@ -909,19 +791,11 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
                 enemiesRef.current.splice(enemyIdx, 1);
               }
 
-              const earnedScore =
-                bullet.target.type === "boss"
-                  ? 1000 * multiplier
-                  : 100 * multiplier;
+              const earnedScore = bullet.target.type === "boss" ? 1000 * multiplier : 100 * multiplier;
               setScore((prev) => prev + earnedScore);
               floatingTextsRef.current.push(
-                new FloatingText(
-                  bullet.target.x,
-                  bullet.target.y,
-                  `+${earnedScore}`,
-                ),
+                new FloatingText(bullet.target.x, bullet.target.y, `+${earnedScore}`)
               );
-              destroyedCountRef.current++;
             }
             bulletsRef.current.splice(i, 1);
           }
@@ -936,10 +810,8 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
           }
         }
 
-        // Strictly verify that all enemies configured for this wave have spawned and were destroyed
         const allEnemiesSpawned = spawnedCountRef.current >= config.enemyCount;
-        const noEnemiesRemaining =
-          enemiesRef.current.length === 0 && bulletsRef.current.length === 0;
+        const noEnemiesRemaining = enemiesRef.current.length === 0 && bulletsRef.current.length === 0;
 
         if (
           isGameStarted &&
@@ -956,12 +828,8 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
             setBombs((prev) => Math.min(3, prev + 1));
           }
 
-          const waveScoreGained = Math.max(
-            0,
-            score - waveStartScoreRef.current,
-          );
+          const waveScoreGained = Math.max(0, score - waveStartScoreRef.current);
 
-          // Display wave clear stats for exactly 3 seconds (180 frames)
           clearBannerRef.current = {
             active: true,
             alpha: 1.0,
@@ -973,7 +841,6 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
             isBoss: config.isBossWave,
           };
 
-          // Advance after 3.2 seconds
           setTimeout(() => {
             setWave((prevWave) => prevWave + 1);
           }, 3200);
@@ -1021,7 +888,7 @@ export const GameCanvas = forwardRef<GameCanvasHandles, GameCanvasProps>(
     ]);
 
     return <canvas ref={canvasRef} className="game-canvas" />;
-  },
+  }
 );
 
 GameCanvas.displayName = "GameCanvas";

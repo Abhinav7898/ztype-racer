@@ -101,7 +101,7 @@ export class Enemy {
     return false;
   }
 
-  update(canvasWidth: number, activeEnemies: Enemy[], isFrozen: boolean) {
+  update(canvasWidth: number, isFrozen: boolean) {
     if (isFrozen) return;
 
     if (this.slowdownFactor < 1.0) {
@@ -204,12 +204,11 @@ export class Enemy {
 
     const fullWidth = ctx.measureText(this.word).width;
     const badgePadX = 8 * scale;
-    const badgePadY = 5 * scale;
     const badgeW = fullWidth + badgePadX * 2;
     const badgeH = (fontSize + 8) * scale;
     const badgeY = this.type === "boss" ? -50 * scale : -34 * scale;
 
-    // 3. RESTORED: Red Laser Lock-On Targeting Reticle
+    // 3. Red Laser Lock-On Targeting Reticle
     if (this.isTargeted) {
       ctx.save();
       const reticlePad = 6 * scale;
@@ -224,35 +223,30 @@ export class Enemy {
       ctx.shadowBlur = 12 * scale;
       ctx.shadowColor = "#ff0055";
 
-      // Top-Left corner
       ctx.beginPath();
       ctx.moveTo(rx, ry + cornerLen);
       ctx.lineTo(rx, ry);
       ctx.lineTo(rx + cornerLen, ry);
       ctx.stroke();
 
-      // Top-Right corner
       ctx.beginPath();
       ctx.moveTo(rx + rw - cornerLen, ry);
       ctx.lineTo(rx + rw, ry);
       ctx.lineTo(rx + rw, ry + cornerLen);
       ctx.stroke();
 
-      // Bottom-Left corner
       ctx.beginPath();
       ctx.moveTo(rx, ry + rh - cornerLen);
       ctx.lineTo(rx, ry + rh);
       ctx.lineTo(rx + cornerLen, ry + rh);
       ctx.stroke();
 
-      // Bottom-Right corner
       ctx.beginPath();
       ctx.moveTo(rx + rw - cornerLen, ry + rh);
       ctx.lineTo(rx + rw, ry + rh);
       ctx.lineTo(rx + rw, ry + rh - cornerLen);
       ctx.stroke();
 
-      // Red laser indicator diamond on bottom
       ctx.fillStyle = "#ff0055";
       ctx.beginPath();
       ctx.arc(0, ry + rh + 4 * scale, 3 * scale, 0, Math.PI * 2);
@@ -261,7 +255,6 @@ export class Enemy {
       ctx.restore();
     }
 
-    // Word Badge Background
     ctx.fillStyle = "rgba(2, 6, 23, 0.95)";
     ctx.strokeStyle = this.isTargeted
       ? "#ff0055"
@@ -274,7 +267,7 @@ export class Enemy {
     ctx.fill();
     ctx.stroke();
 
-    // 4. Highlight Typed Characters & Health Indicator
+    // 4. Highlight Characters
     const startX = -fullWidth / 2;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
