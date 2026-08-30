@@ -1,0 +1,665 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #04060f;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.game-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: #04060f;
+}
+
+.game-playfield {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --------------------------------------------------
+   HUD HEADER (DESKTOP & BASE)
+-------------------------------------------------- */
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 10;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(180deg, rgba(4, 6, 15, 0.95) 0%, rgba(4, 6, 15, 0.4) 80%, rgba(4, 6, 15, 0) 100%);
+}
+
+.hud-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-left-col {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.hud-center-col {
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.hud-right-col {
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.hud-score-sub {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.hud-score-val {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+.hud-center-stats {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hud-divider {
+  color: #334155;
+  margin: 0 2px;
+}
+
+.hud-label {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.hud-acc-val {
+  color: #00f0ff;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+}
+
+.hud-streak-val {
+  color: #ffe600;
+  text-shadow: 0 0 6px rgba(255, 230, 0, 0.5);
+}
+
+.hud-wave-wrapper {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hud-wave-text {
+  color: #ff0055;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  line-height: 1.1;
+  text-shadow: 0 0 14px rgba(255, 0, 85, 0.85);
+  white-space: nowrap;
+}
+
+.hud-multiplier-pill {
+  position: absolute;
+  left: calc(100% + 8px);
+  background: #ffe600;
+  color: #050813;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.hud-pause-btn {
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 10px;
+  color: #475569;
+  letter-spacing: 1px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.hud-pause-btn:hover {
+  color: #00f0ff;
+}
+
+.hud-emp-box {
+  pointer-events: auto;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.hud-emp-title {
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+.hud-emp-icons {
+  display: flex;
+  gap: 4px;
+}
+
+.bomb-icon {
+  font-size: 15px;
+  filter: drop-shadow(0 0 6px #00f0ff);
+}
+
+.bomb-empty {
+  filter: grayscale(1) opacity(0.2);
+}
+
+.hud-lives-row {
+  display: flex;
+  gap: 3px;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.heart-empty {
+  filter: grayscale(1) opacity(0.25);
+}
+
+.sound-toggle-btn {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #00f0ff;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------
+   ZTYPE CUSTOM ON-SCREEN KEYBOARD (MOBILE VIEW)
+-------------------------------------------------- */
+.ztype-keyboard-container {
+  width: 100%;
+  background: rgba(5, 12, 22, 0.98);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+}
+
+.ztype-keyboard-divider {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.8) 0%, rgba(0, 240, 255, 0.2) 100%);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+.ztype-keyboard-body {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 6px 12px 6px;
+  gap: 6px;
+}
+
+.ztype-kb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.row-mid {
+  padding: 0 4%;
+}
+
+.row-bottom {
+  padding: 0 12%;
+}
+
+.ztype-key {
+  flex: 1;
+  height: 42px;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+  outline: none;
+  color: #00f0ff;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.05s, transform 0.05s;
+}
+
+.ztype-key:active {
+  background: rgba(0, 240, 255, 0.3);
+  transform: scale(0.92);
+  color: #ffffff;
+  text-shadow: 0 0 10px #00f0ff;
+}
+
+/* Full Width Bottom Space / EMP Button */
+.row-spacebar {
+  margin-top: 4px;
+}
+
+.ztype-space-btn {
+  width: 100%;
+  height: 38px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 5px;
+  outline: none;
+  color: #00f0ff;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  transition: all 0.1s ease;
+}
+
+.ztype-space-btn.emp-ready {
+  background: rgba(255, 230, 0, 0.15);
+  border-color: #ffe600;
+  color: #ffe600;
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.4);
+}
+
+.ztype-space-btn:active {
+  transform: scale(0.98);
+}
+
+.ztype-space-btn.emp-empty {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+/* --------------------------------------------------
+   MODALS
+-------------------------------------------------- */
+.game-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(4, 6, 15, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+
+.game-modal {
+  background: rgba(10, 16, 30, 0.95);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+  border-radius: 8px;
+  padding: 24px 30px;
+  text-align: center;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.start-modal {
+  width: 420px;
+  max-width: 92vw;
+}
+
+.game-title {
+  color: #00f0ff;
+  font-size: 30px;
+  letter-spacing: 3px;
+  margin-bottom: 2px;
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.7);
+}
+
+.game-subtitle {
+  color: #64748b;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.setup-label {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+}
+
+.setup-input {
+  background: rgba(4, 6, 15, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 4px;
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 5px;
+}
+
+.mode-group {
+  grid-template-columns: 1fr 1fr;
+}
+
+.choice-btn {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: #94a3b8;
+  font-family: 'Courier New', monospace;
+  font-size: 9.5px;
+  font-weight: bold;
+  padding: 6px 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.choice-btn:hover {
+  color: #00f0ff;
+  border-color: #00f0ff;
+}
+
+.choice-active {
+  background: rgba(0, 240, 255, 0.2);
+  color: #00f0ff;
+  border-color: #00f0ff;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+}
+
+.choice-active-boss {
+  background: rgba(236, 72, 153, 0.22);
+  color: #f472b6;
+  border-color: #ec4899;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.45);
+}
+
+.start-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.game-pause-title {
+  color: #00f0ff;
+  font-size: 30px;
+  letter-spacing: 4px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+}
+
+.game-over-title {
+  color: #ff0055;
+  font-size: 32px;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(255, 0, 85, 0.7);
+}
+
+.final-score {
+  color: #94a3b8;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.analytics-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(4, 6, 15, 0.6);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #cbd5e1;
+  text-align: left;
+}
+
+.analytic-item span {
+  color: #00f0ff;
+  font-weight: bold;
+}
+
+.problem-keys {
+  color: #ff0055 !important;
+  font-weight: bold;
+}
+
+.game-over-actions, .pause-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.game-btn {
+  background: linear-gradient(135deg, #ff0055, #ff5500);
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  padding: 9px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);
+  transition: transform 0.15s ease;
+}
+
+.game-btn:hover {
+  transform: scale(1.04);
+}
+
+.game-btn-secondary {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  padding: 9px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.animate-pulse {
+  animation: pulse 0.8s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* --------------------------------------------------
+   MOBILE RESPONSIVE TOP BAR & OPTIONS DROPDOWN
+-------------------------------------------------- */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .game-hud {
+    padding: 10px 14px;
+    align-items: flex-start;
+  }
+
+  /* Score, Wave and Lives strictly on the same top line */
+  .hud-score-val {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .hud-wave-text {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .hud-lives-row {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Settings button placed neatly underneath the lives */
+  .mobile-opt-btn {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(0, 240, 255, 0.45);
+    color: #00f0ff;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+
+  .mobile-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 12px;
+    background: rgba(10, 16, 30, 0.98);
+    border: 1px solid rgba(0, 240, 255, 0.45);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+    border-radius: 6px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+    pointer-events: auto;
+    animation: popIn 0.15s ease-out;
+    min-width: 165px;
+  }
+
+  .dropdown-item {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #00f0ff;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .dropdown-item:active {
+    background: rgba(0, 240, 255, 0.2);
+    color: #ffffff;
+  }
+
+  .danger-item {
+    color: #ff0055;
+  }
+
+  .danger-item:active {
+    background: rgba(255, 0, 85, 0.2);
+    color: #ffffff;
+  }
+}
